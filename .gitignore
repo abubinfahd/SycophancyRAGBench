@@ -42,3 +42,6 @@ desktop.ini
 # Archives and temporary logs
 *.zip
 *.log
+
+# Local GSD planning artifacts
+.planning/
