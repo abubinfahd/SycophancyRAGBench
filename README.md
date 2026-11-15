@@ -218,17 +218,4 @@ Running the benchmark automatically populates `stats/figures/` and `stats/tables
 ### Tables (LaTeX `.tex` files)
 - **`table1_main_results.tex`**: Full factorial results table reporting Sycophancy Rate, Truthfulness, and Pushback Rate with 95% bootstrap confidence intervals for direct insertion into LaTeX manuscript.
 - **`table2_mcnemar_tests.tex`**: Paired McNemar contingency test statistics with Benjamini-Hochberg False Discovery Rate (FDR) corrected $p$-values.
-
----
-
-## 📜 Citation
-
-If you use SycophancyRAGBench in your research, please cite:
-
-```bibtex
-@article{fahd2026sycophancyragbench,
-  title={Does Retrieval-Augmented Generation Cure Sycophancy? A Multi-Paradigm Benchmark and Causal Conflict Analysis},
-  author={Fahd, Abu Bin},
-  year={2026}
-}
 ```
