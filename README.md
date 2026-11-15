@@ -2,7 +2,6 @@
 
 **A Benchmark and Empirical Study of Whether Retrieval-Augmented Generation Reduces Sycophancy in Large Language Models**
 
-[![Target Conference](https://img.shields.io/badge/Target-ACL%20%7C%20EMNLP%20%7C%20NeurIPS%20%7C%20ICLR-blue.svg)](https://arxiv.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
 [![Platform](https://img.shields.io/badge/Platform-Colab%20%7C%20Kaggle%20%7C%20Local-orange.svg)](#quickstart)
