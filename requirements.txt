@@ -1,0 +1,23 @@
+# Core Deep Learning & LLM Inference
+torch>=2.2.0
+transformers>=4.51.0
+accelerate>=0.30.0
+bitsandbytes>=0.43.0
+
+# Dense Embeddings & Retrieval
+sentence-transformers>=3.0.0
+
+# Datasets & Hugging Face Hub
+datasets>=2.19.2
+huggingface_hub>=0.23.0
+
+# Data Science & Statistical Testing
+pandas>=2.0.0
+numpy>=1.24.0
+scikit-learn>=1.3.0
+statsmodels>=0.14.0
+
+# Visualization & Progress
+matplotlib>=3.7.0
+tqdm>=4.66.0
+requests>=2.31.0
