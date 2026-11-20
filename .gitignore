@@ -45,3 +45,5 @@ desktop.ini
 
 # Local GSD planning artifacts
 .planning/
+
+data/precomputed/eval/judged.jsonl

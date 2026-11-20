@@ -124,10 +124,10 @@ env.setup_workspace()
 env.authenticate_hf()
 
 class InferenceArgs:
-    models = ["qwen2.5-3b", "gemma-3-4b", "llama-3.2-3b"]
-    settings = ["vanilla", "rag_bm25", "rag_dense", "rag_hybrid", "control_oracle", "control_irrelevant"]
+    models = ["qwen2.5-3b", "gemma-3-4b", "llama-3.2-3b", "llama-3.1-8b"]
+    settings = ["vanilla", "rag_bm25", "rag_dense", "rag_hybrid", "control_oracle", "control_irrelevant", "rag_hybrid_caev", "oracle_caev"]
     sample_limit = None
-    batch_size = 8
+    batch_size = 16
     hf_token = None
     skip_retrieval = True
     skip_inference = False
@@ -158,10 +158,10 @@ from run_all import run_pipeline
 env.setup_workspace()
 
 class EvalArgs:
-    models = ["qwen2.5-3b", "gemma-3-4b", "llama-3.2-3b"]
-    settings = ["vanilla", "rag_bm25", "rag_dense", "rag_hybrid", "control_oracle", "control_irrelevant"]
+    models = ["qwen2.5-3b", "gemma-3-4b", "llama-3.2-3b", "llama-3.1-8b"]
+    settings = ["vanilla", "rag_bm25", "rag_dense", "rag_hybrid", "control_oracle", "control_irrelevant", "rag_hybrid_caev", "oracle_caev"]
     sample_limit = None
-    batch_size = 8
+    batch_size = 16
     hf_token = None
     skip_retrieval = True
     skip_inference = True

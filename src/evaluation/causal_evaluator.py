@@ -105,6 +105,18 @@ def compute_causal_conflict_metrics(judged_rows: List[Dict[str, Any]]) -> Dict[s
                 "mean_overlap_when_sycophantic": round(float(rag_df[rag_df["endorses_num"] == 1]["evidence_overlap"].mean()), 4),
                 "mean_overlap_when_aligned": round(float(rag_df[rag_df["endorses_num"] == 0]["evidence_overlap"].mean()), 4)
             }
+            by_setting_overlap = {}
+            for s, s_grp in rag_df.groupby("setting"):
+                syco_sub = s_grp[s_grp["endorses_num"] == 1]["evidence_overlap"]
+                align_sub = s_grp[s_grp["endorses_num"] == 0]["evidence_overlap"]
+                by_setting_overlap[s] = {
+                    "mean_overlap_all": round(float(s_grp["evidence_overlap"].mean()), 4),
+                    "mean_overlap_sycophantic": round(float(syco_sub.mean()), 4) if len(syco_sub) > 0 else None,
+                    "mean_overlap_aligned": round(float(align_sub.mean()), 4) if len(align_sub) > 0 else None,
+                    "n_sycophantic": int(len(syco_sub)),
+                    "n_aligned": int(len(align_sub)),
+                }
+            metrics["evidence_faithfulness_by_setting"] = by_setting_overlap
 
     return metrics
 

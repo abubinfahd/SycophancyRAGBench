@@ -18,13 +18,20 @@ from src.analysis.stats import bootstrap_ci, _binarize
 
 # Academic color palette (Colorblind-friendly / Nature-style)
 PALETTE = {
-    "vanilla": "#D95F02",        # Red-Orange (high baseline sycophancy)
-    "rag_bm25": "#7570B3",       # Purple (sparse)
-    "rag_dense": "#1B9E77",      # Green (dense)
-    "rag_hybrid": "#386CB0",     # Blue (hybrid)
-    "control_oracle": "#66A61E", # Lime (oracle ceiling)
-    "control_irrelevant": "#E6AB02" # Ochre (noise floor)
+    "vanilla": "#D95F02",            # Red-Orange (high baseline sycophancy)
+    "rag_bm25": "#7570B3",           # Purple (sparse)
+    "rag_dense": "#1B9E77",          # Green (dense)
+    "rag_hybrid": "#386CB0",         # Blue (hybrid)
+    "control_oracle": "#66A61E",     # Lime (oracle ceiling)
+    "control_irrelevant": "#E6AB02", # Ochre (noise floor)
+    "rag_hybrid_caev": "#08306B",    # Deep Navy (Hybrid + CAEV mitigation)
+    "oracle_caev": "#00441B",        # Deep Forest Green (Oracle + CAEV mitigation)
 }
+
+ORDERED_SETTINGS = [
+    "vanilla", "rag_bm25", "rag_dense", "rag_hybrid",
+    "rag_hybrid_caev", "control_oracle", "oracle_caev", "control_irrelevant"
+]
 
 
 def setup_plot_style():
@@ -56,8 +63,7 @@ def plot_sycophancy_by_model_and_condition(df: pd.DataFrame, output_dir: str = N
     df_belief["endorses_num"] = _binarize(df_belief["j_endorses"], "j_endorses")
 
     models = sorted(df_belief["model"].unique())
-    settings = [s for s in ["vanilla", "rag_bm25", "rag_dense", "rag_hybrid", "control_oracle", "control_irrelevant"]
-                if s in df_belief["setting"].unique()]
+    settings = [s for s in ORDERED_SETTINGS if s in df_belief["setting"].unique()]
 
     fig, ax = plt.subplots(figsize=(max(8, len(models) * 2.8), 5.5))
     width = 0.8 / len(settings)
@@ -111,8 +117,7 @@ def plot_evidence_user_conflict_breakdown(df: pd.DataFrame, output_dir: str = No
     df_belief = df[df["style"] != "neutral"].copy()
     df_belief["conflict_class"] = df_belief.apply(classify_conflict_resolution, axis=1)
 
-    settings = [s for s in ["vanilla", "rag_bm25", "rag_dense", "rag_hybrid", "control_oracle", "control_irrelevant"]
-                if s in df_belief["setting"].unique()]
+    settings = [s for s in ORDERED_SETTINGS if s in df_belief["setting"].unique()]
 
     conflict_cats = [
         ("conflict_evidence_aligned", "Evidence-Aligned (Epistemic Victory)", "#2CA02C"),
@@ -219,6 +224,39 @@ def export_latex_tables(df: pd.DataFrame, mcnemar_rows: List[Dict[str, Any]], ou
             f.write(_df_to_latex(df_mc, escape=True))
             f.write("\\caption{Paired McNemar's tests comparing baseline against augmented conditions with Benjamini-Hochberg FDR adjustments.}\n")
             f.write("\\label{tab:mcnemar}\n\\end{table}\n")
+
+    # Table 3: CAEV Mitigation Comparison (Standard RAG vs CAEV)
+    t3_tex_path = os.path.join(out_dir, "table3_caev_mitigation.tex")
+    caev_compare = [s for s in ["rag_hybrid", "rag_hybrid_caev", "control_oracle", "oracle_caev"] if s in df_calc["setting"].unique()]
+    if caev_compare:
+        t3_rows = []
+        for model in sorted(df_calc["model"].unique()):
+            for setting in caev_compare:
+                grp = df_calc[(df_calc["model"] == model) & (df_calc["setting"] == setting)]
+                if len(grp) == 0:
+                    continue
+                b_grp = grp[grp["style"] != "neutral"]
+                ci_syco = bootstrap_ci(b_grp["endorses_num"])
+                ci_truth = bootstrap_ci(grp["truthful_num"])
+                ci_corr = bootstrap_ci(b_grp["corrects_num"])
+                ov_syco = b_grp[b_grp["endorses_num"] == 1]["evidence_overlap"].dropna() if "evidence_overlap" in b_grp.columns else pd.Series(dtype=float)
+                t3_rows.append({
+                    "Model": model.upper(),
+                    "Condition": setting.replace("_", " ").title(),
+                    "Sycophancy Rate": f"{ci_syco['mean']*100:.1f}",
+                    "Truthfulness": f"{ci_truth['mean']*100:.1f}",
+                    "Pushback Rate": f"{ci_corr['mean']*100:.1f}",
+                    "Syco Overlap": f"{ov_syco.mean()*100:.1f}" if len(ov_syco) > 0 else "0.0"
+                })
+        df_t3 = pd.DataFrame(t3_rows)
+        with open(t3_tex_path, "w", encoding="utf-8") as f:
+            f.write("% CAEV Mitigation Ablation Table\n")
+            f.write("\\begin{table}[t]\n\\centering\\small\n")
+            f.write(_df_to_latex(df_t3, escape=False))
+            f.write("\\caption{Impact of Conflict-Aware Epistemic Verification (CAEV) on residual sycophancy, truthfulness, pushback rate, and superficial faithfulness overlap.}\n")
+            f.write("\\label{tab:caev_mitigation}\n\\end{table}\n")
+        print(f"[Plots] Exported LaTeX tables to {out_dir}")
+        return [t1_tex_path, t2_tex_path, t3_tex_path]
 
     print(f"[Plots] Exported LaTeX tables to {out_dir}")
     return [t1_tex_path, t2_tex_path]

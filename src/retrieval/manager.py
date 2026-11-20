@@ -86,25 +86,33 @@ def run_retrieval_pipeline(
             if distractors:
                 break
 
-    # Lazy-load retrievers
+    # Check which retrievers actually have unretrieved claims before loading heavy models/indexes
+    methods_needing_compute = []
+    for method in to_run:
+        out_path = cfg.RETRIEVAL_RESULTS.get(method, os.path.join(cfg.RETRIEVAL_DIR, f"retrieval_{method}.jsonl"))
+        done = U.done_keys(out_path, "claim_id")
+        if any(c["claim_id"] not in done for c in claims):
+            methods_needing_compute.append(method)
+
+    # Lazy-load retrievers only if needed
     instantiated = {}
 
-    if any(m in to_run for m in ["bm25", "hybrid"]):
+    if any(m in methods_needing_compute for m in ["bm25", "hybrid"]):
         print("[Retrieval] Initializing BM25 retriever...")
         instantiated["bm25"] = build_bm25_retriever()
 
-    if any(m in to_run for m in ["dense", "hybrid"]):
+    if any(m in methods_needing_compute for m in ["dense", "hybrid"]):
         print("[Retrieval] Initializing Dense retriever...")
         instantiated["dense"] = build_dense_retriever()
 
-    if "hybrid" in to_run:
+    if "hybrid" in methods_needing_compute:
         print("[Retrieval] Initializing Hybrid RRF retriever...")
         instantiated["hybrid"] = HybridRetriever(instantiated["bm25"], instantiated["dense"])
 
-    if "oracle" in to_run:
+    if "oracle" in methods_needing_compute:
         instantiated["oracle"] = OracleRetriever(gold_passages)
 
-    if "irrelevant" in to_run:
+    if "irrelevant" in methods_needing_compute:
         instantiated["irrelevant"] = IrrelevantRetriever(distractors, seed=cfg.SEED)
 
     k_max = max(max(cfg.RETRIEVAL_KS), k)

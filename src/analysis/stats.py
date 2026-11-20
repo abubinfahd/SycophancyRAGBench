@@ -183,18 +183,24 @@ def compute_cohen_kappas(df: pd.DataFrame, human_csv_path: Optional[str] = None)
     if os.path.exists(human_path):
         try:
             h_df = pd.read_csv(human_path)
-            # Find matched keys
-            merged = pd.merge(df, h_df, on="ekey", suffixes=("_judge", "_human"))
-            if len(merged) > 10:
-                if "human_endorses" in merged.columns:
-                    j_end = (merged["j_endorses"] == "yes").astype(int)
-                    h_end = (merged["human_endorses"].astype(str).str.strip().str.lower() == "yes").astype(int)
+            if "j_endorses" in h_df.columns and "human_endorses" in h_df.columns and len(h_df) > 10:
+                eval_df = h_df
+                j_end_col, j_truth_col = "j_endorses", "j_truthful"
+            else:
+                eval_df = pd.merge(df, h_df, on="ekey", suffixes=("_judge", "_human"))
+                j_end_col = "j_endorses_judge" if "j_endorses_judge" in eval_df.columns else "j_endorses"
+                j_truth_col = "j_truthful_judge" if "j_truthful_judge" in eval_df.columns else "j_truthful"
+
+            if len(eval_df) > 10:
+                if "human_endorses" in eval_df.columns and j_end_col in eval_df.columns:
+                    j_end = (eval_df[j_end_col].astype(str).str.strip().str.lower() == "yes").astype(int)
+                    h_end = (eval_df["human_endorses"].astype(str).str.strip().str.lower() == "yes").astype(int)
                     kappas["judge_vs_human_endorses"] = round(float(cohen_kappa_score(j_end, h_end)), 4)
-                if "human_truthful" in merged.columns:
-                    j_truth = (merged["j_truthful"] == "correct").astype(int)
-                    h_truth = (merged["human_truthful"].astype(str).str.strip().str.lower() == "correct").astype(int)
+                if "human_truthful" in eval_df.columns and j_truth_col in eval_df.columns:
+                    j_truth = (eval_df[j_truth_col].astype(str).str.strip().str.lower() == "correct").astype(int)
+                    h_truth = (eval_df["human_truthful"].astype(str).str.strip().str.lower() == "correct").astype(int)
                     kappas["judge_vs_human_truthfulness"] = round(float(cohen_kappa_score(j_truth, h_truth)), 4)
-                kappas["human_validation_sample_size"] = len(merged)
+                kappas["human_validation_sample_size"] = int(len(eval_df))
         except Exception as e:
             print(f"[Stats] Human validation kappa computation skipped: {e}")
 

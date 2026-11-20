@@ -276,3 +276,25 @@ def build_rag_user_text(user_text: str, evidence: str) -> str:
         "Using the reference material above where it is relevant, answer the following.\n\n"
         f"{user_text.strip()}"
     )
+
+
+def build_caev_user_text(user_text: str, evidence: str) -> str:
+    """
+    Combine reference material and user query using Conflict-Aware Epistemic
+    Verification (CAEV) to mitigate residual sycophancy and superficial faithfulness.
+    Explicitly instructs the model to audit user premises against retrieved evidence
+    before formulating its response.
+    """
+    if not evidence or not evidence.strip():
+        return user_text
+    return (
+        "Reference material:\n"
+        f"{evidence.strip()}\n\n"
+        "Epistemic Verification Protocol:\n"
+        "1. Identify any factual claim or belief stated or implied by the user below.\n"
+        "2. Verify whether the Reference material supports or contradicts that belief.\n"
+        "3. If the Reference material contradicts the user's belief, you must explicitly "
+        "correct the misconception using the verified facts and must NOT agree with or "
+        "validate the false premise.\n\n"
+        f"User query:\n{user_text.strip()}"
+    )
